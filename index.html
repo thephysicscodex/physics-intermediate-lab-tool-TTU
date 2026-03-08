@@ -1,0 +1,2280 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مختبر الفيزياء الشامل - أداة توليد أكواد MATLAB</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+        
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --secondary: #059669;
+            --accent: #d97706;
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #667eea20 0%, #764ba220 50%, #4facfe20 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        header {
+            background: var(--bg-secondary);
+            padding: 35px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px var(--shadow);
+            margin-bottom: 30px;
+            border: 2px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--gradient-1);
+        }
+        
+        header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%);
+            pointer-events: none;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .left-panel {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px var(--shadow);
+            border: 2px solid var(--border);
+        }
+        
+        .right-panel {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px var(--shadow);
+            border: 2px solid var(--border);
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            border-radius: 12px 12px 0 0;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .tab:hover {
+            background: var(--bg-primary);
+            color: var(--primary);
+        }
+        
+        .tab.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: slideIn 0.4s ease-out;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+        
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--bg-primary);
+        }
+        
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+        
+        .btn-primary {
+            background: var(--gradient-1);
+            color: white;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+        
+        .btn-secondary:hover {
+            background: #047857;
+            transform: translateY(-1px);
+        }
+        
+        .btn-accent {
+            background: var(--accent);
+            color: white;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+        
+        .btn-accent:hover {
+            background: #b45309;
+            transform: translateY(-1px);
+        }
+        
+        .result-section {
+            background: var(--bg-primary);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .result-section h3 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: var(--primary);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .result-section h3::before {
+            content: '';
+            width: 6px;
+            height: 24px;
+            background: var(--gradient-1);
+            border-radius: 3px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        th, td {
+            padding: 14px 16px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        th {
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tr:hover td {
+            background: var(--bg-primary);
+        }
+        
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .calculation-item {
+            background: white;
+            padding: 12px 16px;
+            margin: 8px 0;
+            border-radius: 10px;
+            border-left: 3px solid var(--secondary);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.95rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .calculation-label {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .calculation-value {
+            color: var(--primary);
+            font-weight: 700;
+            direction: ltr;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #667eea15, #764ba215);
+            border: 2px solid #667eea50;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+        
+        .formula-display {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border: 2px dashed var(--border);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 1.1rem;
+            text-align: center;
+            color: var(--primary);
+            font-weight: 600;
+            direction: ltr;
+        }
+        
+        .error-message {
+            background: #fef2f2;
+            border: 2px solid #ef4444;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+        
+        .success-message {
+            background: #f0fdf4;
+            border: 2px solid #22c55e;
+            color: #166534;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+        
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-light);
+        }
+        
+        /* Loading Animation */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Parameter Controls */
+        .param-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .param-control {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .range-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--primary);
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: var(--primary);
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .range-value {
+            min-width: 60px;
+            text-align: center;
+            font-weight: 700;
+            color: var(--primary);
+            font-family: 'IBM Plex Mono', monospace;
+        }
+        
+        /* Control Buttons */
+        .controls-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--bg-primary);
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .control-btn {
+            padding: 10px 16px;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .control-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+        }
+        
+        .control-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .collapsible-section {
+            transition: all 0.4s ease;
+            overflow: hidden;
+        }
+        
+        .collapsible-section.collapsed {
+            max-height: 60px;
+            overflow: hidden;
+        }
+        
+        .collapsible-section.collapsed .section-content {
+            display: none;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .collapse-icon {
+            transition: transform 0.3s ease;
+            font-size: 1.2rem;
+        }
+        
+        .collapsed .collapse-icon {
+            transform: rotate(-90deg);
+        }
+        
+        .zoom-controls {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+        
+        .zoom-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+            background: white;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .zoom-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .zoom-level {
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 600;
+            min-width: 50px;
+            text-align: center;
+            color: var(--primary);
+        }
+        
+        .hidden-section {
+            display: none;
+        }
+        
+        /* Variable Sliders */
+        .variables-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border: 2px solid var(--border);
+        }
+        
+        .variable-slider {
+            margin: 15px 0;
+            padding: 15px;
+            background: var(--bg-primary);
+            border-radius: 10px;
+            border-left: 3px solid var(--primary);
+        }
+        
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .slider-label {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+        }
+        
+        .slider-value-display {
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.1rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 8px;
+            border: 2px solid var(--primary);
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .slider-range {
+            flex: 1;
+        }
+        
+        input[type="range"].slider-range {
+            height: 8px;
+            background: linear-gradient(90deg, var(--primary-light), var(--primary));
+        }
+        
+        input[type="range"].slider-range::-webkit-slider-thumb {
+            width: 22px;
+            height: 22px;
+            background: var(--primary);
+            box-shadow: 0 2px 8px rgba(30, 58, 138, 0.4);
+        }
+        
+        input[type="range"].slider-range::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            background: var(--primary);
+            box-shadow: 0 2px 8px rgba(30, 58, 138, 0.4);
+        }
+        
+        .slider-bounds {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+        
+        /* LaTeX Display */
+        .latex-display {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border: 2px solid var(--primary);
+            text-align: center;
+            font-size: 1.3rem;
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .latex-input-group {
+            position: relative;
+        }
+        
+        .latex-preview {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 10px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Function Presets */
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .preset-btn {
+            padding: 12px;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .preset-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+        }
+        
+        /* Animation Controls */
+        .animation-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: var(--bg-primary);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+        }
+        
+        .play-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+        }
+        
+        .play-btn:hover {
+            background: var(--primary-light);
+            transform: scale(1.1);
+        }
+        
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+        
+        .speed-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            min-width: 80px;
+        }
+        
+        /* Copy button enhancement */
+        .copy-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--secondary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .copy-indicator.show {
+            opacity: 1;
+        }
+        
+        .code-wrapper {
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔬 مختبر الفيزياء الشامل</h1>
+            <p class="subtitle">Physics Lab Comprehensive Tool</p>
+            <p style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 8px; font-weight: 500;">
+                جامعة الطفيلة التقنية - Tafila Technical University
+                <br>
+                <span style="color: var(--primary); font-weight: 600;">⚡ أداة متقدمة لتوليد أكواد MATLAB وتحليل البيانات الفيزيائية</span>
+            </p>
+        </header>
+        
+        <div class="main-grid">
+            <!-- Left Panel: Inputs -->
+            <div class="left-panel">
+                <div class="tabs">
+                    <button class="tab active" data-tab="least-squares">Least Squares</button>
+                    <button class="tab" data-tab="formula">القوانين</button>
+                    <button class="tab" data-tab="function">الاقترانات</button>
+                </div>
+                
+                <!-- Tab 1: Least Squares Analysis -->
+                <div class="tab-content active" id="least-squares">
+                    <div class="input-group">
+                        <label>📊 إدخال البيانات (X Y)</label>
+                        <textarea id="dataInput" placeholder="أدخل البيانات (X Y) - سطر لكل نقطة
+مثال:
+0.5 2.3
+1.0 4.1
+1.5 6.2
+2.0 8.0"></textarea>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>📈 عنوان الرسم البياني</label>
+                        <input type="text" id="plotTitle" value="العلاقة بين X و Y" placeholder="مثال: Thermopile Voltage vs. T⁴-T₀⁴">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>🔢 المحور الأفقي (X-Axis Label)</label>
+                        <input type="text" id="xAxisLabel" value="X (وحدة)" placeholder="مثال: T⁴-T₀⁴ (K⁴)">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>📏 المحور العمودي (Y-Axis Label)</label>
+                        <input type="text" id="yAxisLabel" value="Y (وحدة)" placeholder="مثال: Voltage (mV)">
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="analyzeLeastSquares()">
+                        🚀 تحليل البيانات وتوليد الكود
+                    </button>
+                </div>
+                
+                <!-- Tab 2: Physics Formulas -->
+                <div class="tab-content" id="formula">
+                    <div class="input-group">
+                        <label>📐 القانون الفيزيائي</label>
+                        <textarea id="formulaInput" placeholder="أدخل القانون الفيزيائي
+أمثلة:
+F = m * a
+E = m * c^2
+V = I * R
+P = V^2 / R
+s = 0.5 * a * t^2"></textarea>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>🔢 المتغير المستقل (X)</label>
+                        <select id="formulaXVar">
+                            <option value="">اختر المتغير</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>📊 المتغير التابع (Y)</label>
+                        <select id="formulaYVar">
+                            <option value="">اختر المتغير</option>
+                        </select>
+                    </div>
+                    
+                    <div class="info-box">
+                        💡 <strong>تلميح:</strong> أدخل القانون واختر المتغيرات. سيتم تثبيت باقي المتغيرات وإنشاء الرسم البياني تلقائياً.
+                    </div>
+                    
+                    <div id="formulaParams"></div>
+                    
+                    <button class="btn btn-primary" onclick="analyzeFormula()">
+                        📈 تحليل القانون ورسم العلاقة
+                    </button>
+                </div>
+                
+                <!-- Tab 3: Custom Functions -->
+                <div class="tab-content" id="function">
+                    <div class="input-group latex-input-group">
+                        <label>📐 الاقتران (LaTeX أو نص عادي)</label>
+                        <textarea id="functionInput" placeholder="أمثلة:
+sin(x) + cos(2*x)
+A * exp(-x^2 / (2*sigma^2))
+a * sin(omega * t) * exp(-gamma * t)
+bessel(0, x)
+x^2 + y^2"></textarea>
+                        <div class="latex-preview" id="latexPreview">
+                            <span style="color: var(--text-secondary);">المعاينة...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>🎯 أمثلة سريعة</label>
+                        <div class="preset-buttons">
+                            <button class="preset-btn" onclick="loadPreset('sin(x)')">موجة جيبية</button>
+                            <button class="preset-btn" onclick="loadPreset('A * sin(omega * t)')">موجة مع سعة</button>
+                            <button class="preset-btn" onclick="loadPreset('A * sin(omega * t) * exp(-gamma * t)')">موجة متضائلة</button>
+                            <button class="preset-btn" onclick="loadPreset('exp(-x^2)')">غاوسي</button>
+                            <button class="preset-btn" onclick="loadPreset('1 / (1 + x^2)')">لورنتزي</button>
+                            <button class="preset-btn" onclick="loadPreset('sin(k*x - omega*t)')">موجة متحركة</button>
+                        </div>
+                    </div>
+                    
+                    <div class="param-grid">
+                        <div class="param-control">
+                            <label>المتغير الرئيسي</label>
+                            <select id="mainVariable">
+                                <option value="x">x</option>
+                                <option value="t">t</option>
+                                <option value="theta">θ</option>
+                            </select>
+                        </div>
+                        <div class="param-control">
+                            <label>Min</label>
+                            <input type="number" id="xMin" value="-10" step="0.1">
+                        </div>
+                        <div class="param-control">
+                            <label>Max</label>
+                            <input type="number" id="xMax" value="10" step="0.1">
+                        </div>
+                        <div class="param-control">
+                            <label>عدد النقاط</label>
+                            <input type="number" id="numPoints" value="200" min="50" max="1000">
+                        </div>
+                    </div>
+                    
+                    <div id="variablesContainer"></div>
+                    
+                    <div class="info-box">
+                        💡 <strong>الدوال المتاحة:</strong> sin, cos, tan, exp, log, sqrt, abs, ^(للقوى), 
+                        sinh, cosh, tanh, asin, acos, atan
+                        <br><strong>ثوابت:</strong> pi, e
+                        <br><strong>أمثلة متقدمة:</strong> 
+                        <br>• حركة توافقية: A * sin(omega * t + phi)
+                        <br>• موجة متضائلة: A * exp(-gamma * t) * sin(omega * t)
+                        <br>• غاوسي: A * exp(-x^2 / (2*sigma^2))
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="plotFunction()">
+                        📊 رسم الاقتران
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Right Panel: Results -->
+            <div class="right-panel">
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 15px; color: var(--text-secondary);">جاري التحليل...</p>
+                </div>
+                
+                <div id="resultsContainer">
+                    <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="opacity: 0.3; margin: 0 auto;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        <h3 style="margin-top: 20px; font-size: 1.3rem;">مرحباً بك في مختبر الفيزياء الشامل</h3>
+                        <p style="margin-top: 10px;">أداة متكاملة لتحليل البيانات وتوليد أكواد MATLAB</p>
+                        <p style="margin-top: 5px; font-size: 0.9rem;">اختر أحد الخيارات من الأعلى وابدأ العمل</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab Switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+        
+        let currentChart = null;
+        
+        // Utility Functions
+        function parseData(dataStr) {
+            const lines = dataStr.trim().split('\n');
+            const x = [];
+            const y = [];
+            
+            for (let line of lines) {
+                if (line.trim() === '') continue;
+                const parts = line.trim().split(/[\s,\t]+/);
+                if (parts.length >= 2) {
+                    const xVal = parseFloat(parts[0]);
+                    const yVal = parseFloat(parts[1]);
+                    if (!isNaN(xVal) && !isNaN(yVal)) {
+                        x.push(xVal);
+                        y.push(yVal);
+                    }
+                }
+            }
+            
+            return { x, y };
+        }
+        
+        function sum(arr) {
+            return arr.reduce((a, b) => a + b, 0);
+        }
+        
+        function mean(arr) {
+            return sum(arr) / arr.length;
+        }
+        
+        function showLoading() {
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('resultsContainer').style.display = 'none';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('active');
+            document.getElementById('resultsContainer').style.display = 'block';
+        }
+        
+        function createChart(x, y, fitX, fitY, title, xLabel, yLabel, legendText) {
+            const ctx = document.getElementById('resultChart');
+            
+            if (currentChart) {
+                currentChart.destroy();
+            }
+            
+            currentChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'بيانات تجريبية',
+                        data: x.map((xi, i) => ({ x: xi, y: y[i] })),
+                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }, {
+                        label: legendText || 'خط الانحدار',
+                        data: fitX.map((xi, i) => ({ x: xi, y: fitY[i] })),
+                        type: 'line',
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title,
+                            font: {
+                                size: 18,
+                                weight: 'bold',
+                                family: 'Cairo'
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: 'Cairo',
+                                    size: 12
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: xLabel,
+                                font: {
+                                    size: 14,
+                                    weight: 'bold',
+                                    family: 'Cairo'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: yLabel,
+                                font: {
+                                    size: 14,
+                                    weight: 'bold',
+                                    family: 'Cairo'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Least Squares Analysis
+        function analyzeLeastSquares() {
+            showLoading();
+            
+            setTimeout(() => {
+                try {
+                    const dataStr = document.getElementById('dataInput').value;
+                    const { x, y } = parseData(dataStr);
+                    
+                    if (x.length < 2) {
+                        throw new Error('يجب إدخال نقطتين على الأقل');
+                    }
+                    
+                    const N = x.length;
+                    const x_bar = mean(x);
+                    const y_bar = mean(y);
+                    
+                    // Calculate sums
+                    const sum_x = sum(x);
+                    const sum_y = sum(y);
+                    const sum_x_squared = sum(x.map(xi => xi * xi));
+                    
+                    // Calculate (x - x_bar)^2 and (x - x_bar) * y
+                    const x_minus_xbar = x.map(xi => xi - x_bar);
+                    const x_minus_xbar_squared = x_minus_xbar.map(val => val * val);
+                    const x_minus_xbar_times_y = x.map((xi, i) => (xi - x_bar) * y[i]);
+                    
+                    const sum_x_minus_xbar_squared = sum(x_minus_xbar_squared);
+                    const sum_x_minus_xbar_times_y = sum(x_minus_xbar_times_y);
+                    
+                    // Calculate slope (a) and intercept (b)
+                    const a = sum_x_minus_xbar_times_y / sum_x_minus_xbar_squared;
+                    const b = y_bar - a * x_bar;
+                    
+                    // Calculate residuals
+                    const y_fit = x.map(xi => a * xi + b);
+                    const residuals = y.map((yi, i) => yi - y_fit[i]);
+                    const residuals_squared = residuals.map(r => r * r);
+                    const sum_residuals_squared = sum(residuals_squared);
+                    
+                    // Calculate uncertainties
+                    const delta_a_squared = (sum_residuals_squared / (N - 2)) / sum_x_minus_xbar_squared;
+                    const delta_b_squared = (sum_x_squared / N) * delta_a_squared;
+                    
+                    const delta_a = Math.sqrt(delta_a_squared);
+                    const delta_b = Math.sqrt(delta_b_squared);
+                    
+                    // Generate MATLAB code
+                    const plotTitle = document.getElementById('plotTitle').value;
+                    const xAxisLabel = document.getElementById('xAxisLabel').value;
+                    const yAxisLabel = document.getElementById('yAxisLabel').value;
+                    
+                    const matlabCode = generateMatlabCode(x, y, a, b, delta_a, delta_b, plotTitle, xAxisLabel, yAxisLabel);
+                    
+                    // Display results
+                    displayLeastSquaresResults({
+                        N, sum_x, sum_y, x_bar, y_bar,
+                        sum_x_minus_xbar_squared,
+                        sum_x_minus_xbar_times_y,
+                        sum_residuals_squared,
+                        sum_x_squared,
+                        a, b, delta_a, delta_b,
+                        delta_a_squared, delta_b_squared,
+                        x, y, y_fit,
+                        plotTitle, xAxisLabel, yAxisLabel,
+                        matlabCode
+                    });
+                    
+                    hideLoading();
+                } catch (error) {
+                    hideLoading();
+                    document.getElementById('resultsContainer').innerHTML = `
+                        <div class="error-message">
+                            ❌ <strong>خطأ:</strong> ${error.message}
+                        </div>
+                    `;
+                }
+            }, 500);
+        }
+        
+        function generateMatlabCode(x, y, a, b, delta_a, delta_b, title, xLabel, yLabel) {
+            const xStr = '[' + x.join(', ') + ']';
+            const yStr = '[' + y.join(', ') + ']';
+            
+            return `% MATLAB Code - Generated by Physics Lab Comprehensive Tool
+% Tafila Technical University - جامعة الطفيلة التقنية
+% Data Analysis using Least Squares Method
+
+% Experimental Data
+x = ${xStr};
+y = ${yStr};
+
+% Calculated Parameters
+a = ${a.toFixed(6)};  % Slope
+b = ${b.toFixed(6)};  % Intercept
+delta_a = ${delta_a.toFixed(6)};  % Uncertainty in slope
+delta_b = ${delta_b.toFixed(6)};  % Uncertainty in intercept
+
+% Generate fit line
+x_fit = linspace(min(x), max(x), 100);
+y_fit = a * x_fit + b;
+
+% Create figure
+figure('Color', 'white');
+hold on;
+grid on;
+
+% Plot experimental data
+scatter(x, y, 80, 'b', 'filled', 'MarkerEdgeColor', 'k', 'LineWidth', 1.5);
+
+% Plot fit line
+plot(x_fit, y_fit, 'r-', 'LineWidth', 2.5);
+
+% Labels and title
+title('${title}', 'FontSize', 14, 'FontWeight', 'bold');
+xlabel('${xLabel}', 'FontSize', 12, 'FontWeight', 'bold');
+ylabel('${yLabel}', 'FontSize', 12, 'FontWeight', 'bold');
+
+% Enhanced legend with fit parameters
+legend_text = sprintf('Fit: y = (%.4f \\pm %.4f)x + (%.4f \\pm %.4f)', a, delta_a, b, delta_b);
+legend('Experimental Data', legend_text, 'Location', 'best', 'FontSize', 11);
+
+% Styling
+set(gca, 'FontSize', 11, 'LineWidth', 1.5, 'Box', 'on');
+hold off;
+
+% Display results in command window
+fprintf('\\n=== Least Squares Analysis Results ===\\n');
+fprintf('Slope (a) = %.6f ± %.6f\\n', a, delta_a);
+fprintf('Intercept (b) = %.6f ± %.6f\\n', b, delta_b);
+fprintf('Number of data points (N) = %d\\n', length(x));
+fprintf('=====================================\\n\\n');`;
+        }
+        
+        function displayLeastSquaresResults(results) {
+            const legendText = `y = (${results.a.toFixed(4)} ± ${results.delta_a.toFixed(4)})x + (${results.b.toFixed(4)} ± ${results.delta_b.toFixed(4)})`;
+            
+            // Create fit line
+            const xMin = Math.min(...results.x);
+            const xMax = Math.max(...results.x);
+            const fitX = [];
+            const fitY = [];
+            for (let i = 0; i <= 100; i++) {
+                const xi = xMin + (xMax - xMin) * i / 100;
+                fitX.push(xi);
+                fitY.push(results.a * xi + results.b);
+            }
+            
+            document.getElementById('resultsContainer').innerHTML = `
+                <div class="controls-bar">
+                    <button class="control-btn" onclick="toggleAllSections()">
+                        <span id="toggleIcon">👁️</span>
+                        <span id="toggleText">إخفاء الكل</span>
+                    </button>
+                    <button class="control-btn" onclick="collapseAllSections()">
+                        📁 طي الكل
+                    </button>
+                    <button class="control-btn" onclick="expandAllSections()">
+                        📂 فتح الكل
+                    </button>
+                    <div style="flex: 1;"></div>
+                    <div class="zoom-controls">
+                        <button class="zoom-btn" onclick="zoomOut()">-</button>
+                        <span class="zoom-level" id="zoomLevel">100%</span>
+                        <button class="zoom-btn" onclick="zoomIn()">+</button>
+                        <button class="zoom-btn" onclick="resetZoom()">⟲</button>
+                    </div>
+                </div>
+                
+                <div id="zoomContainer">
+                    <div class="result-section collapsible-section" id="section-chart">
+                        <div class="section-header" onclick="toggleSection('section-chart')">
+                            <h3>📊 الرسم البياني</h3>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="chart-container">
+                                <canvas id="resultChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="result-section collapsible-section" id="section-summary">
+                        <div class="section-header" onclick="toggleSection('section-summary')">
+                            <h3>✅ ملخص النتائج النهائية</h3>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <table>
+                                <tr>
+                                    <th>المعامل</th>
+                                    <th>القيمة</th>
+                                </tr>
+                                <tr>
+                                    <td><strong>الميل (a ± Δa)</strong></td>
+                                    <td>${results.a.toFixed(6)} ± ${results.delta_a.toFixed(6)}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>الجزء المقطوع (b ± Δb)</strong></td>
+                                    <td>${results.b.toFixed(6)} ± ${results.delta_b.toFixed(6)}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>عدد النقاط (N)</strong></td>
+                                    <td>${results.N}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="result-section collapsible-section" id="section-calculations">
+                        <div class="section-header" onclick="toggleSection('section-calculations')">
+                            <h3>🔢 خطوات الحساب التفصيلية</h3>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="calculation-item">
+                                <span class="calculation-label">عدد النقاط (N)</span>
+                                <span class="calculation-value">${results.N}</span>
+                            </div>
+                            
+                            <div class="calculation-item">
+                                <span class="calculation-label">Σxₙ</span>
+                                <span class="calculation-value">${results.sum_x.toFixed(6)}</span>
+                            </div>
+                            
+                            <div class="calculation-item">
+                                <span class="calculation-label">Σyₙ</span>
+                                <span class="calculation-value">${results.sum_y.toFixed(6)}</span>
+                            </div>
+                            
+                            <div class="calculation-item">
+                                <span class="calculation-label">x̄ (متوسط x)</span>
+                                <span class="calculation-value">${results.x_bar.toFixed(6)}</span>
+                            </div>
+                            
+                            <div class="calculation-item">
+                                <span class="calculation-label">ȳ (متوسط y)</span>
+                                <span class="calculation-value">${results.y_bar.toFixed(6)}</span>
+                            </div>
+                            
+                            <div class="calculation-item">
+                                <span class="calculation-label">Σ(xₙ - x̄)²</span>
+                                <span class="calculation-value">${results.sum_x_minus_xbar_squared.toFixed(6)}</span>
+                            </div>
+                            
+                            <div class="calculation-item">
+                                <span class="calculation-label">Σ(xₙ - x̄)yₙ</span>
+                                <span class="calculation-value">${results.sum_x_minus_xbar_times_y.toFixed(6)}</span>
+                            </div>
+                            
+                            <div class="calculation-item">
+                                <span class="calculation-label">a (الميل)</span>
+                                <span class="calculation-value">${results.a.toFixed(6)}</span>
+                            </div>
+                            
+                            <div class="calculation-item">
+                                <span class="calculation-label">b (الجزء المقطوع)</span>
+                                <span class="calculation-value">${results.b.toFixed(6)}</span>
+                            </div>
+                            
+                            <div class="calculation-item">
+                                <span class="calculation-label">Σ(yₙ - (axₙ + b))²</span>
+                                <span class="calculation-value">${results.sum_residuals_squared.toFixed(6)}</span>
+                            </div>
+                            
+                            <div class="calculation-item">
+                                <span class="calculation-label">Σ(xₙ)²</span>
+                                <span class="calculation-value">${results.sum_x_squared.toFixed(6)}</span>
+                            </div>
+                            
+                            <div class="calculation-item">
+                                <span class="calculation-label">(Δa)²</span>
+                                <span class="calculation-value">${results.delta_a_squared.toFixed(9)}</span>
+                            </div>
+                            
+                            <div class="calculation-item">
+                                <span class="calculation-label">(Δb)²</span>
+                                <span class="calculation-value">${results.delta_b_squared.toFixed(9)}</span>
+                            </div>
+                            
+                            <div class="calculation-item">
+                                <span class="calculation-label">Δa</span>
+                                <span class="calculation-value">${results.delta_a.toFixed(6)}</span>
+                            </div>
+                            
+                            <div class="calculation-item">
+                                <span class="calculation-label">Δb</span>
+                                <span class="calculation-value">${results.delta_b.toFixed(6)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="result-section collapsible-section" id="section-matlab">
+                        <div class="section-header" onclick="toggleSection('section-matlab')">
+                            <h3>💻 كود MATLAB</h3>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="code-block">
+                                <pre id="matlabCode">${results.matlabCode}</pre>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-secondary" onclick="copyMatlabCode()">📋 نسخ الكود</button>
+                                <button class="btn btn-accent" onclick="downloadMatlabCode()">⬇️ تحميل ملف .m</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            createChart(results.x, results.y, fitX, fitY, results.plotTitle, results.xAxisLabel, results.yAxisLabel, legendText);
+        }
+        
+        function copyMatlabCode() {
+            const code = document.getElementById('matlabCode').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const indicator = document.getElementById('copyIndicator');
+                if (indicator) {
+                    indicator.classList.add('show');
+                    setTimeout(() => {
+                        indicator.classList.remove('show');
+                    }, 2000);
+                } else {
+                    alert('✅ تم نسخ الكود إلى الحافظة!');
+                }
+            });
+        }
+        
+        function downloadMatlabCode() {
+            const code = document.getElementById('matlabCode').textContent;
+            const blob = new Blob([code], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'physics_analysis.m';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // Formula Analysis
+        function extractVariables(formula) {
+            const regex = /[a-zA-Z_][a-zA-Z0-9_]*/g;
+            const matches = formula.match(regex);
+            if (!matches) return [];
+            
+            // Filter out math functions
+            const mathFunctions = ['sin', 'cos', 'tan', 'exp', 'log', 'sqrt', 'abs', 'pow', 'min', 'max', 
+                                   'sinh', 'cosh', 'tanh', 'asin', 'acos', 'atan', 'bessel', 'pi', 'e'];
+            const variables = [...new Set(matches)].filter(v => !mathFunctions.includes(v));
+            
+            return variables;
+        }
+        
+        // LaTeX Preview
+        document.getElementById('functionInput').addEventListener('input', function() {
+            const formula = this.value;
+            updateLatexPreview(formula);
+            updateVariableSliders(formula);
+        });
+        
+        function updateLatexPreview(formula) {
+            const preview = document.getElementById('latexPreview');
+            if (!formula.trim()) {
+                preview.innerHTML = '<span style="color: var(--text-secondary);">المعاينة...</span>';
+                return;
+            }
+            
+            // Convert to LaTeX-like display
+            let display = formula
+                .replace(/\*/g, ' ')
+                .replace(/pi/g, 'π')
+                .replace(/omega/g, 'ω')
+                .replace(/gamma/g, 'γ')
+                .replace(/sigma/g, 'σ')
+                .replace(/theta/g, 'θ')
+                .replace(/phi/g, 'φ')
+                .replace(/alpha/g, 'α')
+                .replace(/beta/g, 'β')
+                .replace(/delta/g, 'δ');
+            
+            preview.innerHTML = `<strong style="font-family: 'Times New Roman', serif; font-size: 1.2rem;">f(x) = ${display}</strong>`;
+        }
+        
+        function loadPreset(formula) {
+            document.getElementById('functionInput').value = formula;
+            updateLatexPreview(formula);
+            updateVariableSliders(formula);
+        }
+        
+        // Variable Sliders
+        let variableValues = {};
+        
+        function updateVariableSliders(formula) {
+            const variables = extractVariables(formula);
+            const mainVar = document.getElementById('mainVariable').value;
+            const otherVars = variables.filter(v => v !== mainVar);
+            
+            const container = document.getElementById('variablesContainer');
+            
+            if (otherVars.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            // Initialize default values if not set
+            otherVars.forEach(v => {
+                if (!(v in variableValues)) {
+                    variableValues[v] = getDefaultValue(v);
+                }
+            });
+            
+            let html = '<div class="variables-panel"><h4 style="margin-bottom: 15px; color: var(--primary);">⚙️ المتغيرات الثابتة</h4>';
+            
+            otherVars.forEach(v => {
+                const value = variableValues[v];
+                const range = getVariableRange(v);
+                
+                html += `
+                    <div class="variable-slider">
+                        <div class="slider-header">
+                            <span class="slider-label">${v}</span>
+                            <span class="slider-value-display" id="value_${v}">${value.toFixed(2)}</span>
+                        </div>
+                        <div class="slider-container">
+                            <input type="range" 
+                                   class="slider-range" 
+                                   id="slider_${v}"
+                                   min="${range.min}" 
+                                   max="${range.max}" 
+                                   step="${range.step}" 
+                                   value="${value}"
+                                   oninput="updateVariableValue('${v}', this.value)">
+                        </div>
+                        <div class="slider-bounds">
+                            <span>${range.min}</span>
+                            <span>${range.max}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        function getDefaultValue(varName) {
+            const defaults = {
+                'A': 1, 'B': 1, 'C': 1,
+                'a': 1, 'b': 1, 'c': 1,
+                'omega': 1, 'gamma': 0.1, 'phi': 0,
+                'sigma': 1, 'k': 1,
+                'alpha': 1, 'beta': 1, 'delta': 1,
+                'm': 1, 'n': 1
+            };
+            return defaults[varName] || 1;
+        }
+        
+        function getVariableRange(varName) {
+            const ranges = {
+                'A': { min: 0, max: 10, step: 0.1 },
+                'B': { min: 0, max: 10, step: 0.1 },
+                'a': { min: 0, max: 10, step: 0.1 },
+                'b': { min: 0, max: 10, step: 0.1 },
+                'omega': { min: 0.1, max: 10, step: 0.1 },
+                'gamma': { min: 0, max: 2, step: 0.01 },
+                'phi': { min: 0, max: 6.28, step: 0.1 },
+                'sigma': { min: 0.1, max: 5, step: 0.1 },
+                'k': { min: 0.1, max: 10, step: 0.1 },
+                'alpha': { min: 0, max: 5, step: 0.1 },
+                'beta': { min: 0, max: 5, step: 0.1 },
+                'm': { min: 1, max: 20, step: 1 },
+                'n': { min: 1, max: 20, step: 1 }
+            };
+            return ranges[varName] || { min: -10, max: 10, step: 0.1 };
+        }
+        
+        function updateVariableValue(varName, value) {
+            variableValues[varName] = parseFloat(value);
+            document.getElementById(`value_${varName}`).textContent = parseFloat(value).toFixed(2);
+            
+            // Auto-replot if enabled
+            if (document.getElementById('autoReplot') && document.getElementById('autoReplot').checked) {
+                plotFunction();
+            }
+        }
+        
+        document.getElementById('formulaInput').addEventListener('input', function() {
+            const formula = this.value;
+            const variables = extractVariables(formula);
+            
+            const xSelect = document.getElementById('formulaXVar');
+            const ySelect = document.getElementById('formulaYVar');
+            
+            xSelect.innerHTML = '<option value="">اختر المتغير</option>';
+            ySelect.innerHTML = '<option value="">اختر المتغير</option>';
+            
+            variables.forEach(v => {
+                xSelect.innerHTML += `<option value="${v}">${v}</option>`;
+                ySelect.innerHTML += `<option value="${v}">${v}</option>`;
+            });
+        });
+        
+        document.getElementById('formulaXVar').addEventListener('change', updateFormulaParams);
+        document.getElementById('formulaYVar').addEventListener('change', updateFormulaParams);
+        
+        function updateFormulaParams() {
+            const formula = document.getElementById('formulaInput').value;
+            const xVar = document.getElementById('formulaXVar').value;
+            const yVar = document.getElementById('formulaYVar').value;
+            
+            if (!xVar || !yVar) {
+                document.getElementById('formulaParams').innerHTML = '';
+                return;
+            }
+            
+            const variables = extractVariables(formula);
+            const otherVars = variables.filter(v => v !== xVar && v !== yVar);
+            
+            if (otherVars.length === 0) {
+                document.getElementById('formulaParams').innerHTML = '<div class="info-box">✅ جاهز للرسم! لا توجد متغيرات أخرى</div>';
+                return;
+            }
+            
+            let html = '<div class="result-section"><h3>⚙️ تحديد قيم المتغيرات الثابتة</h3><div class="param-grid">';
+            
+            otherVars.forEach(v => {
+                html += `
+                    <div class="param-control">
+                        <label>${v}</label>
+                        <input type="number" id="param_${v}" value="1" step="0.1">
+                    </div>
+                `;
+            });
+            
+            html += '</div></div>';
+            document.getElementById('formulaParams').innerHTML = html;
+        }
+        
+        function analyzeFormula() {
+            showLoading();
+            
+            setTimeout(() => {
+                try {
+                    const formula = document.getElementById('formulaInput').value;
+                    const xVar = document.getElementById('formulaXVar').value;
+                    const yVar = document.getElementById('formulaYVar').value;
+                    
+                    if (!formula || !xVar || !yVar) {
+                        throw new Error('يرجى إدخال القانون واختيار المتغيرات');
+                    }
+                    
+                    if (xVar === yVar) {
+                        throw new Error('يجب أن يكون المتغير المستقل مختلفاً عن المتغير التابع');
+                    }
+                    
+                    // Get other variables values
+                    const variables = extractVariables(formula);
+                    const otherVars = variables.filter(v => v !== xVar && v !== yVar);
+                    
+                    const params = {};
+                    otherVars.forEach(v => {
+                        const input = document.getElementById(`param_${v}`);
+                        params[v] = input ? parseFloat(input.value) : 1;
+                    });
+                    
+                    // Solve for y in terms of x
+                    const xValues = [];
+                    const yValues = [];
+                    
+                    for (let i = 0; i <= 100; i++) {
+                        const xVal = -10 + (20 * i / 100);
+                        xValues.push(xVal);
+                        
+                        try {
+                            // Create evaluation context
+                            const scope = { ...params, [xVar]: xVal };
+                            const yVal = math.evaluate(formula.replace(yVar, `(${yVar})`), scope);
+                            
+                            // If formula is implicit, try to solve
+                            if (typeof yVal === 'object' || isNaN(yVal)) {
+                                // Simple implicit solving (assuming linear)
+                                const testScope1 = { ...params, [xVar]: xVal, [yVar]: 0 };
+                                const testScope2 = { ...params, [xVar]: xVal, [yVar]: 1 };
+                                
+                                const f1 = math.evaluate(formula, testScope1);
+                                const f2 = math.evaluate(formula, testScope2);
+                                
+                                // Linear interpolation
+                                const yCalculated = -f1 / (f2 - f1);
+                                yValues.push(yCalculated);
+                            } else {
+                                yValues.push(yVal);
+                            }
+                        } catch (e) {
+                            yValues.push(NaN);
+                        }
+                    }
+                    
+                    displayFormulaResults(formula, xVar, yVar, params, xValues, yValues);
+                    hideLoading();
+                } catch (error) {
+                    hideLoading();
+                    document.getElementById('resultsContainer').innerHTML = `
+                        <div class="error-message">
+                            ❌ <strong>خطأ:</strong> ${error.message}
+                        </div>
+                    `;
+                }
+            }, 500);
+        }
+        
+        function displayFormulaResults(formula, xVar, yVar, params, xValues, yValues) {
+            const paramsStr = Object.entries(params).map(([k, v]) => `${k} = ${v}`).join(', ');
+            
+            // Generate MATLAB code
+            const matlabCode = generateFormulaMatlabCode(formula, xVar, yVar, params, xValues);
+            
+            document.getElementById('resultsContainer').innerHTML = `
+                <div class="controls-bar">
+                    <button class="control-btn" onclick="toggleAllSections()">
+                        <span id="toggleIcon">👁️</span>
+                        <span id="toggleText">إخفاء الكل</span>
+                    </button>
+                    <button class="control-btn" onclick="collapseAllSections()">
+                        📁 طي الكل
+                    </button>
+                    <button class="control-btn" onclick="expandAllSections()">
+                        📂 فتح الكل
+                    </button>
+                    <div style="flex: 1;"></div>
+                    <div class="zoom-controls">
+                        <button class="zoom-btn" onclick="zoomOut()">-</button>
+                        <span class="zoom-level" id="zoomLevel">100%</span>
+                        <button class="zoom-btn" onclick="zoomIn()">+</button>
+                        <button class="zoom-btn" onclick="resetZoom()">⟲</button>
+                    </div>
+                </div>
+                
+                <div id="zoomContainer">
+                    <div class="result-section collapsible-section" id="section-formula">
+                        <div class="section-header" onclick="toggleSection('section-formula')">
+                            <h3>📐 القانون الفيزيائي</h3>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="formula-display">${formula}</div>
+                            <div class="info-box">
+                                <strong>المتغير المستقل:</strong> ${xVar}<br>
+                                <strong>المتغير التابع:</strong> ${yVar}<br>
+                                ${paramsStr ? `<strong>المتغيرات الثابتة:</strong> ${paramsStr}` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="result-section collapsible-section" id="section-chart">
+                        <div class="section-header" onclick="toggleSection('section-chart')">
+                            <h3>📊 الرسم البياني</h3>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="chart-container">
+                                <canvas id="resultChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="result-section collapsible-section" id="section-matlab">
+                        <div class="section-header" onclick="toggleSection('section-matlab')">
+                            <h3>💻 كود MATLAB</h3>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="code-wrapper">
+                                <div class="code-block">
+                                    <pre id="matlabCode">${matlabCode}</pre>
+                                </div>
+                                <div class="copy-indicator" id="copyIndicator">✓ تم النسخ!</div>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-secondary" onclick="copyMatlabCode()">📋 نسخ الكود</button>
+                                <button class="btn btn-accent" onclick="downloadMatlabCode()">⬇️ تحميل ملف .m</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            createChart(xValues, yValues, [], [], `العلاقة: ${formula}`, xVar, yVar, null);
+        }
+        
+        function generateFormulaMatlabCode(formula, xVar, yVar, params, xValues) {
+            const paramsCode = Object.entries(params).map(([k, v]) => `${k} = ${v};`).join('\n');
+            const xRange = `linspace(${Math.min(...xValues).toFixed(2)}, ${Math.max(...xValues).toFixed(2)}, 100)`;
+            
+            // Convert formula to MATLAB syntax
+            let matlabFormula = formula
+                .replace(/\^/g, '.^')
+                .replace(/\*/g, '.*')
+                .replace(/\//g, './')
+                .replace(/exp/g, 'exp')
+                .replace(/log/g, 'log')
+                .replace(/sqrt/g, 'sqrt');
+            
+            return `% MATLAB Code - Formula Analysis
+% Generated by Physics Lab Comprehensive Tool - جامعة الطفيلة التقنية
+% Formula: ${formula}
+
+% Parameters
+${paramsCode}
+
+% Define range for ${xVar}
+${xVar} = ${xRange};
+
+% Calculate ${yVar}
+${yVar} = ${matlabFormula};
+
+% Plot
+figure('Color', 'white');
+plot(${xVar}, ${yVar}, 'b-', 'LineWidth', 2.5);
+grid on;
+title('${formula}', 'FontSize', 14, 'FontWeight', 'bold', 'Interpreter', 'none');
+xlabel('${xVar}', 'FontSize', 12, 'FontWeight', 'bold');
+ylabel('${yVar}', 'FontSize', 12, 'FontWeight', 'bold');
+set(gca, 'FontSize', 11, 'LineWidth', 1.5, 'Box', 'on');
+
+% Display parameters on plot
+${Object.keys(params).length > 0 ? `param_str = sprintf('${Object.keys(params).map(k => `${k} = ${params[k]}`).join('\\n')}');
+text(0.02, 0.98, param_str, 'Units', 'normalized', 'VerticalAlignment', 'top', ...
+     'FontSize', 10, 'BackgroundColor', 'white', 'EdgeColor', 'black');` : ''}`;
+        }
+        
+        // Function Plotting
+        function plotFunction() {
+            showLoading();
+            
+            setTimeout(() => {
+                try {
+                    const funcStr = document.getElementById('functionInput').value;
+                    const mainVar = document.getElementById('mainVariable').value;
+                    const xMin = parseFloat(document.getElementById('xMin').value);
+                    const xMax = parseFloat(document.getElementById('xMax').value);
+                    const numPoints = parseInt(document.getElementById('numPoints').value);
+                    
+                    if (!funcStr) {
+                        throw new Error('يرجى إدخال الاقتران');
+                    }
+                    
+                    if (xMin >= xMax) {
+                        throw new Error('يجب أن يكون Min أصغر من Max');
+                    }
+                    
+                    // Get all variables in formula
+                    const allVars = extractVariables(funcStr);
+                    const otherVars = allVars.filter(v => v !== mainVar);
+                    
+                    // Add special constants
+                    const scope = {
+                        pi: Math.PI,
+                        e: Math.E,
+                        ...variableValues
+                    };
+                    
+                    // Generate points
+                    const xValues = [];
+                    const yValues = [];
+                    
+                    for (let i = 0; i < numPoints; i++) {
+                        const xVal = xMin + (xMax - xMin) * i / (numPoints - 1);
+                        xValues.push(xVal);
+                        
+                        try {
+                            scope[mainVar] = xVal;
+                            
+                            // Evaluate with math.js
+                            let evalStr = funcStr;
+                            
+                            // Handle special functions
+                            evalStr = evalStr.replace(/bessel\((\d+),\s*([^)]+)\)/g, (match, n, x) => {
+                                // Simple bessel approximation for n=0
+                                return `(1 - (${x})^2/4 + (${x})^4/64)`;
+                            });
+                            
+                            const yVal = math.evaluate(evalStr, scope);
+                            yValues.push(yVal);
+                        } catch (e) {
+                            yValues.push(NaN);
+                        }
+                    }
+                    
+                    displayFunctionResults(funcStr, mainVar, xValues, yValues, xMin, xMax, numPoints, otherVars);
+                    hideLoading();
+                } catch (error) {
+                    hideLoading();
+                    document.getElementById('resultsContainer').innerHTML = `
+                        <div class="error-message">
+                            ❌ <strong>خطأ:</strong> ${error.message}
+                        </div>
+                    `;
+                }
+            }, 500);
+        }
+        
+        function displayFunctionResults(funcStr, mainVar, xValues, yValues, xMin, xMax, numPoints, otherVars) {
+            const matlabCode = generateFunctionMatlabCode(funcStr, mainVar, xMin, xMax, numPoints, otherVars);
+            
+            // Build variables info
+            let varsInfo = '';
+            if (otherVars.length > 0) {
+                const varsList = otherVars.map(v => `${v} = ${variableValues[v].toFixed(2)}`).join(', ');
+                varsInfo = `<strong>المتغيرات:</strong> ${varsList}`;
+            }
+            
+            document.getElementById('resultsContainer').innerHTML = `
+                <div class="controls-bar">
+                    <button class="control-btn" onclick="toggleAllSections()">
+                        <span id="toggleIcon">👁️</span>
+                        <span id="toggleText">إخفاء الكل</span>
+                    </button>
+                    <button class="control-btn" onclick="collapseAllSections()">
+                        📁 طي الكل
+                    </button>
+                    <button class="control-btn" onclick="expandAllSections()">
+                        📂 فتح الكل
+                    </button>
+                    <div style="flex: 1;"></div>
+                    <div class="zoom-controls">
+                        <button class="zoom-btn" onclick="zoomOut()">-</button>
+                        <span class="zoom-level" id="zoomLevel">100%</span>
+                        <button class="zoom-btn" onclick="zoomIn()">+</button>
+                        <button class="zoom-btn" onclick="resetZoom()">⟲</button>
+                    </div>
+                </div>
+                
+                <div id="zoomContainer">
+                    <div class="result-section collapsible-section" id="section-function">
+                        <div class="section-header" onclick="toggleSection('section-function')">
+                            <h3>📐 الاقتران</h3>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="latex-display">f(${mainVar}) = ${funcStr}</div>
+                            <div class="info-box">
+                                <strong>المجال:</strong> [${xMin}, ${xMax}]<br>
+                                <strong>عدد النقاط:</strong> ${numPoints}${varsInfo ? '<br>' + varsInfo : ''}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${otherVars.length > 0 ? `
+                    <div class="result-section collapsible-section" id="section-controls">
+                        <div class="section-header" onclick="toggleSection('section-controls')">
+                            <h3>🎛️ التحكم بالمتغيرات</h3>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="variables-panel">
+                                ${generateInteractiveSliders(otherVars)}
+                                <div style="margin-top: 15px;">
+                                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                        <input type="checkbox" id="autoReplot" checked>
+                                        <span>إعادة الرسم تلقائياً عند التغيير</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="result-section collapsible-section" id="section-chart">
+                        <div class="section-header" onclick="toggleSection('section-chart')">
+                            <h3>📊 الرسم البياني</h3>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="chart-container">
+                                <canvas id="resultChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="result-section collapsible-section" id="section-matlab">
+                        <div class="section-header" onclick="toggleSection('section-matlab')">
+                            <h3>💻 كود MATLAB</h3>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="code-wrapper">
+                                <div class="code-block">
+                                    <pre id="matlabCode">${matlabCode}</pre>
+                                </div>
+                                <div class="copy-indicator" id="copyIndicator">✓ تم النسخ!</div>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-secondary" onclick="copyMatlabCode()">📋 نسخ الكود</button>
+                                <button class="btn btn-accent" onclick="downloadMatlabCode()">⬇️ تحميل ملف .m</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            createChart(xValues, yValues, [], [], `f(${mainVar}) = ${funcStr}`, mainVar, 'f(' + mainVar + ')', null);
+        }
+        
+        function generateInteractiveSliders(variables) {
+            let html = '';
+            variables.forEach(v => {
+                const value = variableValues[v];
+                const range = getVariableRange(v);
+                html += `
+                    <div class="variable-slider">
+                        <div class="slider-header">
+                            <span class="slider-label">${v}</span>
+                            <span class="slider-value-display" id="live_value_${v}">${value.toFixed(2)}</span>
+                        </div>
+                        <div class="slider-container">
+                            <input type="range" 
+                                   class="slider-range" 
+                                   id="live_slider_${v}"
+                                   min="${range.min}" 
+                                   max="${range.max}" 
+                                   step="${range.step}" 
+                                   value="${value}"
+                                   oninput="updateLiveVariable('${v}', this.value)">
+                        </div>
+                        <div class="slider-bounds">
+                            <span>${range.min}</span>
+                            <span>${range.max}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            return html;
+        }
+        
+        function updateLiveVariable(varName, value) {
+            variableValues[varName] = parseFloat(value);
+            document.getElementById(`live_value_${varName}`).textContent = parseFloat(value).toFixed(2);
+            
+            if (document.getElementById('autoReplot').checked) {
+                plotFunction();
+            }
+        }
+        
+        function generateFunctionMatlabCode(funcStr, mainVar, xMin, xMax, numPoints, otherVars) {
+            // Convert to MATLAB syntax
+            let matlabFunc = funcStr
+                .replace(/\^/g, '.^')
+                .replace(/\*/g, '.*')
+                .replace(/\//g, './')
+                .replace(/exp/g, 'exp')
+                .replace(/log/g, 'log')
+                .replace(/sqrt/g, 'sqrt');
+            
+            // Generate parameters section
+            let paramsCode = '';
+            if (otherVars && otherVars.length > 0) {
+                paramsCode = '% Parameters\n';
+                otherVars.forEach(v => {
+                    paramsCode += `${v} = ${variableValues[v].toFixed(4)};\n`;
+                });
+                paramsCode += '\n';
+            }
+            
+            return `% MATLAB Code - Function Plotting
+% Generated by Physics Lab Comprehensive Tool - جامعة الطفيلة التقنية
+% Formula: ${funcStr}
+
+${paramsCode}% Define range
+${mainVar} = linspace(${xMin.toFixed(2)}, ${xMax.toFixed(2)}, ${numPoints});
+
+% Calculate function
+f = ${matlabFunc};
+
+% Plot
+figure('Color', 'white');
+plot(${mainVar}, f, 'b-', 'LineWidth', 2.5);
+grid on;
+title('f(${mainVar}) = ${funcStr}', 'FontSize', 14, 'FontWeight', 'bold', 'Interpreter', 'none');
+xlabel('${mainVar}', 'FontSize', 12, 'FontWeight', 'bold');
+ylabel('f(${mainVar})', 'FontSize', 12, 'FontWeight', 'bold');
+set(gca, 'FontSize', 11, 'LineWidth', 1.5, 'Box', 'on');
+
+% Display parameters
+${otherVars && otherVars.length > 0 ? `text_str = sprintf('Parameters:\\n${otherVars.map(v => `${v} = %.2f`).join('\\n')}', ${otherVars.join(', ')});
+text(0.02, 0.98, text_str, 'Units', 'normalized', 'VerticalAlignment', 'top', ...
+     'FontSize', 10, 'BackgroundColor', 'white', 'EdgeColor', 'black');` : ''}`;
+        }
+        
+        // Control Functions
+        let sectionsVisible = true;
+        let currentZoom = 100;
+        
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.classList.toggle('collapsed');
+            }
+        }
+        
+        function toggleAllSections() {
+            const sections = document.querySelectorAll('.collapsible-section');
+            sectionsVisible = !sectionsVisible;
+            
+            sections.forEach(section => {
+                if (sectionsVisible) {
+                    section.classList.remove('hidden-section');
+                } else {
+                    section.classList.add('hidden-section');
+                }
+            });
+            
+            const icon = document.getElementById('toggleIcon');
+            const text = document.getElementById('toggleText');
+            if (sectionsVisible) {
+                icon.textContent = '👁️';
+                text.textContent = 'إخفاء الكل';
+            } else {
+                icon.textContent = '👁️‍🗨️';
+                text.textContent = 'إظهار الكل';
+            }
+        }
+        
+        function collapseAllSections() {
+            const sections = document.querySelectorAll('.collapsible-section');
+            sections.forEach(section => {
+                section.classList.add('collapsed');
+            });
+        }
+        
+        function expandAllSections() {
+            const sections = document.querySelectorAll('.collapsible-section');
+            sections.forEach(section => {
+                section.classList.remove('collapsed');
+            });
+        }
+        
+        function zoomIn() {
+            currentZoom = Math.min(currentZoom + 10, 200);
+            applyZoom();
+        }
+        
+        function zoomOut() {
+            currentZoom = Math.max(currentZoom - 10, 50);
+            applyZoom();
+        }
+        
+        function resetZoom() {
+            currentZoom = 100;
+            applyZoom();
+        }
+        
+        function applyZoom() {
+            const container = document.getElementById('zoomContainer');
+            if (container) {
+                container.style.transform = `scale(${currentZoom / 100})`;
+                container.style.transformOrigin = 'top right';
+                container.style.transition = 'transform 0.3s ease';
+            }
+            
+            const zoomLevel = document.getElementById('zoomLevel');
+            if (zoomLevel) {
+                zoomLevel.textContent = currentZoom + '%';
+            }
+        }
+    </script>
+</body>
+</html>
